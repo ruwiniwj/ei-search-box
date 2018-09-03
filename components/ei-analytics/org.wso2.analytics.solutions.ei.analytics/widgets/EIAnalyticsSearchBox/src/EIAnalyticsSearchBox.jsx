@@ -20,6 +20,8 @@ import Widget from '@wso2-dashboards/widget';
 import Select from 'react-select';
 import './react-select.css';
 
+let pageName;
+
 class EIAnalyticsSearchBox extends Widget {
 
     constructor(props) {
@@ -31,11 +33,9 @@ class EIAnalyticsSearchBox extends Widget {
         this.publishedMsgSet = [];
         this.handleChange = this.handleChange.bind(this);
         this.handleDataReceived = this.handleDataReceived.bind(this);
-        this.getCurrentPage = this.getCurrentPage.bind(this);
-        this.getUrlParameter = this.getUrlParameter.bind(this);
         this.excludeComponets = this.excludeComponets.bind(this);
         this.publishMessage = this.publishMessage.bind(this);
-        this.pageName = this.getCurrentPage();
+        pageName = getCurrentPage();
         this.pgAPI = "api";
         this.pgEndpoint = "endpoint";
         this.pgProxy = "proxy";
@@ -43,40 +43,27 @@ class EIAnalyticsSearchBox extends Widget {
         this.pgInbound = "inbound";
     }
 
-    getCurrentPage() {
-        let pageName;
-        let href = parent.window.location.href;
-        let lastSegment = href.substr(href.lastIndexOf('/') + 1);
-        if (lastSegment.indexOf('?') == -1) {
-            pageName = lastSegment;
-
-        } else {
-            pageName = lastSegment.substr(0, lastSegment.indexOf('?'));
-        }
-        return pageName;
-    }
-
     componentDidMount() {
         // if a component is already selected, preserve the selection
-        let urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('id')) {
-            let selectedComp = this.getUrlParameter('id');
+        let selected=super.getGlobalState(getKey("selectedComponent").selectedComponent);
+        if (selected) {
             this.publishMessage(selectedComp);
         }
+
         let query;
-        let componentType = this.pageName;
+        let componentType = pageName;
         super.getWidgetConfiguration(this.props.widgetID)
             .then((message) => {
                 //based on the component type, query ESB or Mediator stat tables
-                if (this.pageName == this.pgAPI || this.pageName == this.pgProxy || this.pageName == this.pgInbound) {
+                if (pageName == this.pgAPI || pageName == this.pgProxy || pageName == this.pgInbound) {
                     query = message.data.configs.providerConfig.configs.config.queryData.queryESB;
 
                     //change pageName variable to 'Proxy Service' to query data based on the componentType
-                    if (this.pageName == this.pgProxy) {
+                    if (pageName == this.pgProxy) {
                         componentType = 'proxy service';
                     }
                     //change pageName variable to 'Inbound EndPoint'to query data based on the componentType
-                    else if (this.pageName == this.pgInbound) {
+                    else if (pageName == this.pgInbound) {
                         componentType = 'inbound endpoint';
                     }
 
@@ -102,13 +89,13 @@ class EIAnalyticsSearchBox extends Widget {
             });
 
         // remove endpoints in the excludeEndpoints-array from the options
-        if (this.pageName == this.pgEndpoint) {
+        if (pageName == this.pgEndpoint) {
             let excludeEndpoints = ["AnonymousEndpoint"];
             this.excludeComponets(componentNameArr, excludeEndpoints);
         }
 
         // remove sequences in the excludeSequences-array from the options
-        else if (this.pageName == this.pgSequence) {
+        else if (pageName == this.pgSequence) {
             let excludeSequences = ["PROXY_INSEQ", "PROXY_OUTSEQ", "PROXY_FAULTSEQ", "API_OUTSEQ", "API_INSEQ", "API_FAULTSEQ", "AnonymousSequence"];
             this.excludeComponets(componentNameArr, excludeSequences);
         }
@@ -133,13 +120,6 @@ class EIAnalyticsSearchBox extends Widget {
             }
         }
     }
-
-    getUrlParameter(name) {
-        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-        let regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-        let results = regex.exec(location.search);
-        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-    };
 
     //publish the selected componentName
     handleChange(event) {
@@ -174,6 +154,22 @@ class EIAnalyticsSearchBox extends Widget {
             </div>
         );
     }
+}
+
+function getCurrentPage() {
+    let pageName;
+    let href = parent.window.location.href;
+    let lastSegment = href.substr(href.lastIndexOf('/') + 1);
+    if (lastSegment.indexOf('?') == -1) {
+        pageName = lastSegment;
+    } else {
+        pageName = lastSegment.substr(0, lastSegment.indexOf('?'));
+    }
+    return pageName;
+}
+
+function getKey(parameter){
+    return pageName+"_page_"+parameter;
 }
 
 global.dashboard.registerWidget('EIAnalyticsSearchBox', EIAnalyticsSearchBox);
