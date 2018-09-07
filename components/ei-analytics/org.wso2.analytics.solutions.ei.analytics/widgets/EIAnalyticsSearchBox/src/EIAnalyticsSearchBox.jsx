@@ -155,7 +155,7 @@ class EIAnalyticsSearchBox extends Widget {
         let selectedComponent = {"selectedComponent": pubMessage};
         this.publishedMsgSet.push({time: new Date(), value: pubMessage});
         super.publish(selectedComponent);
-        super.setGlobalState(this.getKey(this.pageName,SELECTED_COMPONENT),selectedComponent);
+        //super.setGlobalState(this.getKey(this.pageName,SELECTED_COMPONENT),selectedComponent);
         //publish it to the subscriber
         //super.publish(JSON.stringify(selectedComponent));
     }
