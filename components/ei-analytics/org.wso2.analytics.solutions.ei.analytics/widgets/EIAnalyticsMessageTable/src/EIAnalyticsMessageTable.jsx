@@ -135,7 +135,6 @@ class EIAnalyticsMessageTable extends Widget {
     }
 
     handleGraphUpdate() {
-        console.log("calling");
         super.getWidgetConfiguration(this.props.widgetID)
             .then((message) => {
                 super.getWidgetChannelManager().unsubscribeWidget(this.props.id);
@@ -182,7 +181,7 @@ class EIAnalyticsMessageTable extends Widget {
                     );
             })
             .catch((error) => {
-                console.error("Unable to load widget configurations");
+                console.error("Unable to load configurations of " + this.props.widgetID + " widget.");
             });
     }
 
